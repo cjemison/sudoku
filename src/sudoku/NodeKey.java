@@ -1,4 +1,4 @@
-package sudoku.board;
+package sudoku;
 
 /**
  * Created by cjemison on 3/9/16.

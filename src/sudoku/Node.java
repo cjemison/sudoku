@@ -1,4 +1,4 @@
-package sudoku.board;
+package sudoku;
 
 
 import java.util.ArrayList;

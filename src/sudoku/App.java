@@ -1,16 +1,14 @@
 package sudoku;
 
-import sudoku.board.Node;
-import sudoku.board.NodeKey;
-import sudoku.board.NodeObserver;
-
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class App {
 
@@ -22,8 +20,49 @@ public class App {
     public void run() throws Exception {
         Map<NodeKey, Node> nodeMap = initializeBoard();
         NodeObserver observer = new NodeObserver(nodeMap);
-        loadBoard(readFile("board.txt"), nodeMap);
+        loadBoard(readFile("board3.txt"), nodeMap);
         printBoard(nodeMap);
+        System.out.println();
+        while (isBoardComplete(nodeMap)) {
+            List<Node> nodeList = getEmptyNodes(nodeMap);
+            for (int i = 0; i < 3; i++) {
+                final int index = i;
+                System.out.println("Index: " + index);
+                for (Node n : nodeList) {
+                    System.out.println("Possible Values: " + n.getPossibleValuesList());
+                    System.out.println("Other Node: " + n);
+                    List<Node> emptyColleagues = NodeUtil.getCluster(nodeMap, NodeUtil.NodeType.getNodeType(index), n);
+                    System.out.println("Empty: " + emptyColleagues);
+
+
+                    List<Long> longList = new ArrayList<>(n.getPossibleValuesList());
+
+                    for (Long x : longList) {
+                        boolean cantPlace = false;
+                        for (Node emptyNode : emptyColleagues) {
+                            if (emptyNode.getPossibleValuesList().contains(x)) {
+                                cantPlace = true;
+                                break;
+                            }
+                        }
+                        if (!cantPlace) {
+                            n.setValue(x);
+                        }
+                    }
+                }
+                System.out.println();
+            }
+            break;
+        }
+        printBoard(nodeMap);
+    }
+
+    public boolean isBoardComplete(Map<NodeKey, Node> nodeMap) {
+        return nodeMap.values().stream().filter(c -> c.getValue() == -1).count() > 1;
+    }
+
+    public List<Node> getEmptyNodes(Map<NodeKey, Node> nodeMap) {
+        return nodeMap.values().stream().filter(c -> c.getValue() == -1).collect(Collectors.toList());
     }
 
     private Map<NodeKey, Node> initializeBoard() {

@@ -1,4 +1,4 @@
-package sudoku.board;
+package sudoku;
 
 import java.util.List;
 import java.util.Map;
