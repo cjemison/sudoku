@@ -20,7 +20,7 @@ public class App {
     public void run() throws Exception {
         Map<NodeKey, Node> nodeMap = initializeBoard();
         NodeObserver observer = new NodeObserver(nodeMap);
-        loadBoard(readFile("board3.txt"), nodeMap);
+        loadBoard(readFile("board4.txt"), nodeMap);
         printBoard(nodeMap);
         System.out.println();
         while (isBoardComplete(nodeMap)) {
@@ -40,6 +40,7 @@ public class App {
                         }
                         if (!cantPlace) {
                             n.setValue(x);
+                            break;
                         }
                     }
                 }
