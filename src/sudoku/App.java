@@ -27,16 +27,9 @@ public class App {
             List<Node> nodeList = getEmptyNodes(nodeMap);
             for (int i = 0; i < 3; i++) {
                 final int index = i;
-                System.out.println("Index: " + index);
                 for (Node n : nodeList) {
-                    System.out.println("Possible Values: " + n.getPossibleValuesList());
-                    System.out.println("Other Node: " + n);
                     List<Node> emptyColleagues = NodeUtil.getCluster(nodeMap, NodeUtil.NodeType.getNodeType(index), n);
-                    System.out.println("Empty: " + emptyColleagues);
-
-
                     List<Long> longList = new ArrayList<>(n.getPossibleValuesList());
-
                     for (Long x : longList) {
                         boolean cantPlace = false;
                         for (Node emptyNode : emptyColleagues) {
@@ -50,7 +43,6 @@ public class App {
                         }
                     }
                 }
-                System.out.println();
             }
             break;
         }
