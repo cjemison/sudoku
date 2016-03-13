@@ -11,24 +11,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class App {
+    private final Map<NodeKey, Node> nodeMap = initializeBoard();
+    private final NodeObserver observer = new NodeObserver(nodeMap);
 
     public static void main(String[] args) throws Exception {
         App app = new App();
-        app.run();
+        app.run("board.txt");
     }
 
-    public void run() throws Exception {
-        Map<NodeKey, Node> nodeMap = initializeBoard();
-        NodeObserver observer = new NodeObserver(nodeMap);
-        loadBoard(readFile("board4.txt"), nodeMap);
+    public void run(final String filename) throws Exception {
+        loadBoard(readFile(filename), nodeMap);
         printBoard(nodeMap);
-        System.out.println();
-        while (isBoardComplete(nodeMap)) {
+
+        final int maxIterations = 250;
+        int cnt = 0;
+        while (isBoardComplete(nodeMap) && cnt < maxIterations) {
             List<Node> nodeList = getEmptyNodes(nodeMap);
             for (int i = 0; i < 3; i++) {
-                final int index = i;
                 for (Node n : nodeList) {
-                    List<Node> emptyColleagues = NodeUtil.getCluster(nodeMap, NodeUtil.NodeType.getNodeType(index), n);
+                    List<Node> emptyColleagues = NodeUtil.getCluster(nodeMap, NodeUtil.NodeType.getNodeType(i), n);
                     List<Long> longList = new ArrayList<>(n.getPossibleValuesList());
                     for (Long x : longList) {
                         boolean cantPlace = false;
@@ -45,6 +46,7 @@ public class App {
                     }
                 }
             }
+            cnt++;
         }
         printBoard(nodeMap);
     }
@@ -84,6 +86,7 @@ public class App {
     }
 
     public void printBoard(Map<NodeKey, Node> nodeMap) {
+        System.out.println();
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 Node node = getNode(i, j, nodeMap);

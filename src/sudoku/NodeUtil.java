@@ -1,9 +1,11 @@
 package sudoku;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -11,25 +13,29 @@ import java.util.stream.Collectors;
  */
 public class NodeUtil {
 
+
     public static List<Node> getCluster(final Map<NodeKey, Node> nodeMap,
                                         final NodeType nodeType,
                                         final Node value) {
-        List<Node> list = new ArrayList<>();
-        if (nodeType == NodeType.X) {
-            list.addAll(nodeMap.values().stream().filter(c -> !c.equals(value)
-                    && c.getX() == value.getX()
-                    && c.getValue() == -1).collect(Collectors.toList()));
-        } else if (nodeType == NodeType.Y) {
-            list.addAll(nodeMap.values().stream().filter(c -> !c.equals(value)
-                    && c.getY() == value.getY()
-                    && c.getValue() == -1).collect(Collectors.toList()));
-        } else {
-            list.addAll(nodeMap.values().stream().filter(c -> !c.equals(value)
-                    && c.getGrid() == value.getGrid()
-                    && c.getValue() == -1).collect(Collectors.toList()));
-        }
-        return list;
+
+        Objects.requireNonNull(nodeMap);
+        Objects.requireNonNull(nodeType);
+        Objects.requireNonNull(value);
+
+        return nodeType.getFriends(nodeMap, nodeType.getNodeAxisValues().apply(value)).stream().filter((c) ->
+                !c.equals(value) && c.getValue() == -1).collect(Collectors.toList());
     }
+
+    public static Map<NodeType, List<Long>> getValues(final Map<NodeKey, Node> nodeMap,
+                                                      final Node value) {
+        Map<NodeType, List<Long>> map = new HashMap<>();
+
+        for (NodeType nodeType : NodeType.values()) {
+        }
+        return map;
+    }
+
+
 
     enum NodeType {
         X(0), Y(1), G(2);
@@ -43,7 +49,7 @@ public class NodeUtil {
             }
         }
 
-        private final int value;
+        public final int value;
 
         NodeType(int value) {
             this.value = value;
@@ -55,6 +61,26 @@ public class NodeUtil {
 
         public int getValue() {
             return value;
+        }
+
+        public Function<Node, Long> getNodeAxisValues() {
+            if (this.value == NodeType.X.value) {
+                return Node::getX;
+            } else if (this.value == NodeType.Y.value) {
+                return Node::getY;
+            } else {
+                return Node::getGrid;
+            }
+        }
+
+        public Predicate<Node> getPredicate(final Node node,
+                                            final long index) {
+            return (c) -> getNodeAxisValues().apply(node) == index;
+        }
+
+        public List<Node> getFriends(final Map<NodeKey, Node> nodeMap,
+                                     final long index) {
+            return nodeMap.values().stream().filter(c -> getPredicate(c, index).test(c)).collect(Collectors.toList());
         }
     }
 
