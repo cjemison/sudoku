@@ -22,7 +22,7 @@ public class NodeUtil {
         Objects.requireNonNull(nodeType);
         Objects.requireNonNull(value);
 
-        return nodeType.getFriends(nodeMap, nodeType.getNodeAxisValues().apply(value)).stream().filter((c) ->
+        return nodeType.getFriends(nodeMap, nodeType.getNodeAxisValues().apply(value)).parallelStream().filter((c) ->
                 !c.equals(value) && c.getValue() == -1).collect(Collectors.toList());
     }
 
@@ -31,11 +31,10 @@ public class NodeUtil {
         Map<NodeType, List<Long>> map = new HashMap<>();
 
         for (NodeType nodeType : NodeType.values()) {
+            map.put(nodeType, nodeType.getFriends(nodeMap, nodeType.getNodeAxisValues().apply(value)).stream().map(Node::getValue).collect(Collectors.toList()));
         }
         return map;
     }
-
-
 
     enum NodeType {
         X(0), Y(1), G(2);

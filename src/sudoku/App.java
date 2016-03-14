@@ -11,21 +11,57 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class App {
-    private final Map<NodeKey, Node> nodeMap = initializeBoard();
-    private final NodeObserver observer = new NodeObserver(nodeMap);
+
+    private String filename;
 
     public static void main(String[] args) throws Exception {
         App app = new App();
-        app.run("board.txt");
+        app.run("board5.txt");
     }
 
     public void run(final String filename) throws Exception {
-        loadBoard(readFile(filename), nodeMap);
+        this.filename = filename;
+        Map<NodeKey, Node> nodeMap = initializeBoard();
+        NodeObserver observer = new NodeObserver(nodeMap);
+        System.out.println("start\n");
+        loadBoard(readFile(this.filename), nodeMap);
         printBoard(nodeMap);
+        placeValues(nodeMap);
 
-        final int maxIterations = 250;
+        if (!isBoardComplete(nodeMap)) {
+            Map<NodeKey, Node> cloneMap = cloneMap(nodeMap);
+
+
+            final Node guessNode = cloneMap.values().stream().filter(c -> c.getValue() == -1
+                    && !c.getPossibleValuesList().isEmpty()
+                    && c.getPossibleValuesList().size() == 2).findAny().get();
+            long val = guessNode.getPossibleValuesList().get(0);
+            long secondVal = guessNode.getPossibleValuesList().get(1);
+
+            cloneMap.get(new NodeKey(guessNode.getX(), guessNode.getY())).setValue(val);
+            if (!isBoardComplete(nodeMap)) {
+                nodeMap.get(new NodeKey(guessNode.getX(), guessNode.getY())).setValue(secondVal);
+            } else {
+                nodeMap = cloneMap;
+            }
+        }
+        printBoard(nodeMap);
+        System.out.println("end\n");
+    }
+
+    private Map<NodeKey, Node> cloneMap(final Map<NodeKey, Node> originalMap) throws Exception {
+        Map<NodeKey, Node> nodeMap = initializeBoard();
+        NodeObserver observer = new NodeObserver(nodeMap);
+        loadBoard(readFile(this.filename), nodeMap);
+        printBoard(nodeMap);
+        placeValues(nodeMap);
+        return nodeMap;
+    }
+
+    private void placeValues(Map<NodeKey, Node> nodeMap) {
+        final int maxIterations = 100;
         int cnt = 0;
-        while (isBoardComplete(nodeMap) && cnt < maxIterations) {
+        while (!isBoardComplete(nodeMap) && cnt < maxIterations) {
             List<Node> nodeList = getEmptyNodes(nodeMap);
             for (int i = 0; i < 3; i++) {
                 for (Node n : nodeList) {
@@ -48,11 +84,10 @@ public class App {
             }
             cnt++;
         }
-        printBoard(nodeMap);
     }
 
     public boolean isBoardComplete(Map<NodeKey, Node> nodeMap) {
-        return nodeMap.values().stream().filter(c -> c.getValue() == -1).count() > 1;
+        return nodeMap.values().stream().filter(c -> c.getValue() == -1).count() == 0;
     }
 
     public List<Node> getEmptyNodes(Map<NodeKey, Node> nodeMap) {
@@ -86,18 +121,25 @@ public class App {
     }
 
     public void printBoard(Map<NodeKey, Node> nodeMap) {
-        System.out.println();
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 Node node = getNode(i, j, nodeMap);
                 if (node.getValue() == -1) {
-                    System.out.print("X");
+                    System.out.print("x");
                 } else {
                     System.out.print(node.getValue());
                 }
+
+                if (j == 2 || j == 5) {
+                    System.out.print("|");
+                }
             }
             System.out.println();
+            if (i == 2 || i == 5) {
+                System.out.println("-----------");
+            }
         }
+        System.out.println("\n###########\n");
     }
 
     public void loadBoard(final List<String> list,
